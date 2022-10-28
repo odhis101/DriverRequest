@@ -14,6 +14,7 @@ import {db } from "../../components/config"
 import { firebase } from "../../components/fetch";
 import { useEffect,useState } from 'react';
 import Modal from "react-native-modal";
+import { request } from 'express';
 
 //import styles from './styles.js';
 const Homesearch = ({navigation}) => {
@@ -28,9 +29,10 @@ const Homesearch = ({navigation}) => {
       }
     
     */}    
+    
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [users, setUsers] = useState();
-    const [requests, setRequests] = useState()
+    const [requests, setRequests] = useState('default');
     const todoref = firebase.firestore().collection('orders');
     const handleModal = () => setIsModalVisible(() => !isModalVisible);
    
@@ -59,11 +61,11 @@ const Homesearch = ({navigation}) => {
                 else{
                     console.log('Document data:', doc.data());
                     setRequests(doc.data())
+                    handleModal()
                 }
     }
-   setTimeout(function () {
-    checkRequest()
-   },5000)
+   
+   setInterval(checkRequest, 100000);
 }, [])
 console.log('requests')
 console.log('this is requests',requests)
@@ -98,8 +100,8 @@ console.log('this is requests',requests)
           <View>
             <View style={styles.Modalcontainer}>
             <Text style={styles.ModalTitle}> New Ambulance Request</Text>
-            <Text style={styles.ModalTitle}> Pick up Location : </Text>
-            <Text style={styles.ModalTitle}> name: </Text>
+            <Text style={styles.ModalTitle}> Pick up Location :  </Text>
+            <Text style={styles.ModalTitle}> name: {requests.username}  </Text>
             <StartBTN text={'Start '} onPress={handleModal} />
             </View>
 
