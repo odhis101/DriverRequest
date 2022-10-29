@@ -5,10 +5,12 @@ import Ionicons from "react-native-vector-icons/Ionicons"
 import {TextInput} from 'react-native-gesture-handler';
 import MapView,{PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
+import { useRoute } from '@react-navigation/native'; 
 const EnRoute = (props) => {
-const confirm = () => {
-  console.warn('confirm')
-}
+const route = useRoute();
+const {originPlace, destinationPlace} = route.params
+
+
 const destination ={
   latitude: 37.78825,
   longitude: -122.4324,
@@ -41,7 +43,7 @@ const origin ={
               </Marker>
               <MapViewDirections
     origin={origin}
-    destination={destination}
+    destination={destinationPlace}
     apikey={'AIzaSyAeRdORzU5z5rUedWcqGLZxRwE_6w9isRc'}
     strokeWidth={5}
     strokeColor="red"

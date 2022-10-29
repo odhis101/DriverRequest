@@ -24,11 +24,7 @@ const RootNavigator = () => {
                 component={ServerStartScreen}
               
              />
-             <Stack.Screen
-                name="searchResults"
-                component={NewRequest}
-              
-             />
+           
              <Stack.Screen
                 name="EnRoute"
                 component={EnRoute}

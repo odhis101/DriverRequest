@@ -38,10 +38,7 @@ const Homesearch = ({navigation}) => {
    
 
 
-    const pressHandlers =() =>{
-        navigation.navigate('searchResults');
-        
-    }
+
     const pressHandler = async () =>{
         const cityRef = firebase.firestore().collection('orders').doc('FTgN89JHNyiaNQANVsRG');
         const doc = await cityRef.get();
@@ -59,17 +56,33 @@ const Homesearch = ({navigation}) => {
                 console.log('No such document!');
                 }
                 else{
-                    console.log('Document data:', doc.data());
+                    //console.log('Document data:', doc.data());
                     setRequests(doc.data())
                     handleModal()
                 }
     }
    
-   setInterval(checkRequest, 100000);
+   setInterval(checkRequest, 10000);
 }, [])
 console.log('requests')
 console.log('this is requests',requests)
+const originPlace ={
+  latitude: requests.originLatitude,
+  longitude: requests.oreiginLongitude,
+}
+const destinationPlace ={
 
+  latitude: requests.destLatitude,
+  longitude: requests.destLongitude,
+}
+console.log(originPlace)
+const pressHandlers =() =>{
+  navigation.navigate('EnRoute', {
+    originPlace,
+    destinationPlace,
+  });
+  
+}
  
 
 
@@ -94,7 +107,7 @@ console.log('this is requests',requests)
            < Loginbtn text={'42 requests on-going'}/>
             
             <View style= {styles.container}>
-           <StartBTN text={'stop'} onPress={handleModal} />
+           <StartBTN text={'stop'} onPress={pressHandlers} />
            <Modal isVisible={isModalVisible}>
         <View>
           <View>
@@ -102,7 +115,7 @@ console.log('this is requests',requests)
             <Text style={styles.ModalTitle}> New Ambulance Request</Text>
             <Text style={styles.ModalTitle}> Pick up Location :  </Text>
             <Text style={styles.ModalTitle}> name: {requests.username}  </Text>
-            <StartBTN text={'Start '} onPress={handleModal} />
+            <StartBTN text={'Start '} onPress={pressHandlers} />
             </View>
 
 
