@@ -64,7 +64,7 @@ const Homesearch = ({navigation}) => {
    
    setInterval(checkRequest, 10000);
 }, [])
-console.log('requests')
+console.log('requestss')
 console.log('this is requests',requests)
 const originPlace ={
   latitude: requests.originLatitude,
