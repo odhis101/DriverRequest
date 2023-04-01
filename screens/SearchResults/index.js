@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Image,TextInput,Button,Pressable} from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View, Image,TextInput,Button,Pressable,TextInput} from 'react-native';
 import HomeLogo from '../../components/homeLogo';
 import Types from '../../components/DiffrentTypes';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -10,12 +10,40 @@ import { useRoute } from '@react-navigation/native';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
 import { createOrder} from '../../src/graphql/mutations';
 import { collection, doc, setDoc, addDoc, updateDoc, deleteDoc, getDoc, getDocs, where, query } from "firebase/firestore"; 
-
+import io from 'socket.io-client';;
 import { db } from '../../components/config';
+import * as Location from 'expo-location';
+
 
 const SearchResults = ({navigation}) => {
-  const [fromText, setFromText] = useState()
-  const [destinationText,setDestinationText] = useState();
+
+  const [message, setMessage] = useState('');
+  const [output, setOutput] = useState([]);
+  const socket = io('ws://192.168.0.31:8080', { transports: ['websocket'] });
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Permission to access location was denied');
+        return;
+      }
+  
+      Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.High, timeInterval: 5000 },
+        position => {
+          const { latitude, longitude } = position.coords;
+          setLocation({ latitude, longitude });
+          
+          // Emit location data on 'userLocation' event
+          console.log('sending user location', { latitude, longitude }, 'to server loCATION');
+          socket.emit('ambulance location', {latitude,longitude});
+        },
+      );
+    })();
+  }, []);
+
+ 
   //const [originPlace,setOriginPlace]= useState()
   const route = useRoute();
   const [Desitnation,setDesitnation]= useState()
@@ -25,6 +53,7 @@ const SearchResults = ({navigation}) => {
   const pressHandler =() =>{
   navigation.navigate('EnRoute');
 }
+
 
 const origin ={
   latitude: originPlace.details.geometry.location.lat,

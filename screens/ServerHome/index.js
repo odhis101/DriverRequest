@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, Image, TouchableOpacity, View,ScrollView,Button} from 'react-native';
+import { StyleSheet, Text, Image,FlatList, TouchableOpacity, View,ScrollView,Button,TextInput} from 'react-native';
+import { useEffect,useState } from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Calling from '../../components/calling';
@@ -8,13 +9,57 @@ import OurButton from '../../components/GoToButton';
 import ModuleButton from '../../components/moduleButton';
 import Loginbtn from '../../components/loginbtn';
 import StartBTN from '../../components/StartBTNServer';
+import WebSocket from 'react-native-websocket';
+import io from 'socket.io-client';
+
 //import styles from './styles.js';
 const Homesearch = ({navigation}) => {
-   
-    const pressHandler =() =>{
+    const [message, setMessage] = useState('');
+    const [messages, setMessages] = useState([]);
+
+    const [inputValue, setInputValue] = useState('');
+
+  const socket = io('ws://192.168.0.31:8080', { transports: ['websocket'] });
+
+    useEffect(() => {
+        socket.on('connect', () => {
+          console.log('Socket.IO connected');
+    
+          // Send a message to the server after the connection is established
+          socket.emit('chat message', 'Hello, server!');
+        });
+    
+        socket.on('chat message', (message) => {
+          console.log('Socket.IO message received:', message);
+          setMessage(message);
+        });
+    
+        socket.on('disconnect', () => {
+          console.log('Socket.IO disconnected');
+        });
+    
+        socket.on('connect_error', (error) => {
+          console.error('Socket.IO connection error:', error);
+        });
+    
+        socket.on('connect_timeout', (timeout) => {
+          console.error('Socket.IO connection timeout:', timeout);
+        });
+    
+        socket.on('error', (error) => {
+          console.error('Socket.IO error:', error);
+        });
+      }, []);
+    
+      const handleClick = () => {
+        console.log('Sending message to server');
+        socket.emit('chat message', { text: inputValue });
+        setInputValue('');
+    };
+    
+      const pressHandler = () => {
         navigation.navigate('destination');
-        
-    }
+      };
     return(
         <ScrollView>
         <View>
@@ -33,6 +78,18 @@ const Homesearch = ({navigation}) => {
         <Text style={styles.status}> You Are Offline</Text>
         </View>
         </View>
+        <View>
+        <FlatList
+  data={messages}
+  renderItem={({ item }) => <Text>{item.text}</Text>}
+  keyExtractor={(item, index) => index.toString()}
+/>
+        <Text>{message.text}</Text>
+        <TextInput value={inputValue} onChangeText={setInputValue} />
+        <Button title="Send message to server" onPress={handleClick} />
+    </View>
+
+    
 
       
 

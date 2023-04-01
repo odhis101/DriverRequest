@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, Image, TouchableOpacity, View,ScrollView,Button} from 'react-native';
+import { StyleSheet, Text, Image, TouchableOpacity, View,ScrollView,Button,TextInput} from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Calling from '../../components/calling';
@@ -15,71 +15,48 @@ import { firebase } from "../../components/fetch";
 import { useEffect,useState } from 'react';
 import Modal from "react-native-modal";
 import { request } from 'express';
+import * as Location from 'expo-location';
+import { useNavigation } from '@react-navigation/native';
+import io from 'socket.io-client';
+
 
 //import styles from './styles.js';
 const Homesearch = ({navigation}) => {
-   {/*
-    const origin ={
-        latitude: originPlace.details.geometry.location.lat,
-        longitude: originPlace.details.geometry.location.lng,
+
+  const [location, setLocation] = useState({ latitude: 0, longitude: 0 });
+  const socket = io('ws://192.168.0.31:8080', { transports: ['websocket'] });
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Permission to access location was denied');
+        return;
       }
-      const destination ={
-        latitude:destinationPlace.details.geometry.location.lat,
-        longitude: destinationPlace.details.geometry.location.lng,
-      }
-    
-    */}    
-    
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [users, setUsers] = useState();
-    const [requests, setRequests] = useState('default');
-    const todoref = firebase.firestore().collection('orders');
-    const handleModal = () => setIsModalVisible(() => !isModalVisible);
-   
+  
+      Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.High, timeInterval: 5000 },
+        position => {
+          const { latitude, longitude } = position.coords;
+          setLocation({ latitude, longitude });
+          
+          // Emit location data on 'userLocation' event
+          console.log('sending ambulance location', { latitude, longitude }, 'to server loCATION');
+          socket.emit('ambulance location', `${latitude} ${longitude}`);
+        },
+      );
+    })();
+  }, []);
 
 
-
-    const pressHandler = async () =>{
-        const cityRef = firebase.firestore().collection('orders').doc('FTgN89JHNyiaNQANVsRG');
-        const doc = await cityRef.get();
-        if (!doc.exists) {
-        console.log('No such document!');
-        } else {
-        console.log('Document data:', doc.data());
-        }
-    }
-    useEffect(()  => {
-        const checkRequest = async () => {
-              const checkRequests = firebase.firestore().collection('orders').doc('FTgN89JHNyiaNQANVsRG');
-              const doc = await checkRequests.get();
-                if (!doc.exists) {
-                console.log('No such document!');
-                }
-                else{
-                    //console.log('Document data:', doc.data());
-                    setRequests(doc.data())
-                    handleModal()
-                }
-    }
-   
-   setInterval(checkRequest, 10000);
-}, [])
-console.log('requestss')
-console.log('this is requests',requests)
 const originPlace ={
-  latitude: requests.originLatitude,
-  longitude: requests.oreiginLongitude,
+  latitude: location.latitude,
+  longitude: location.longitude,
 }
-const destinationPlace ={
 
-  latitude: requests.destLatitude,
-  longitude: requests.destLongitude,
-}
-console.log(originPlace)
 const pressHandlers =() =>{
   navigation.navigate('EnRoute', {
     originPlace,
-    destinationPlace,
+
   });
   
 }
@@ -91,42 +68,33 @@ const pressHandlers =() =>{
         <View>
         <MapView style={styles.Image}
                 provider={PROVIDER_GOOGLE}
-               initialRegion={{
-                latitude: 21.7645,
-                longitude: 72.1519,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-              }} 
+                initialRegion={{
+                  /*
+                   latitude: originPlace.details.geometry.location.lat,
+                   longitude: originPlace.details.geometry.location.lng,
+                   */
+                   latitude: -1.2921,
+                   longitude: 36.8219,
+                   latitudeDelta: 0.0922,
+                   longitudeDelta: 0.0421,
+                 }} 
               >
               <Marker 
-              coordinate={{latitude:21.7645,longitude: 72.1519}}
+              coordinate= {{latitude:location.latitude,longitude:location.longitude}}
             >
-              <Image source={require('../../assets/helicopter.png')} style={{width:60,height:60,resizeMode:'contain'}}/>
+              <Image source={require('../../assets/ambulance.png')} style={{width:60,height:60,resizeMode:'contain'}}/>
               </Marker>
               </MapView>
            < Loginbtn text={'42 requests on-going'}/>
             
             <View style= {styles.container}>
            <StartBTN text={'stop'} onPress={pressHandlers} />
-           <Modal isVisible={isModalVisible}>
-        <View>
-          <View>
-            <View style={styles.Modalcontainer}>
-            <Text style={styles.ModalTitle}> New Ambulance Request</Text>
-            <Text style={styles.ModalTitle}> Pick up Location :  </Text>
-            <Text style={styles.ModalTitle}> name: {requests.username}  </Text>
-            <StartBTN text={'Start '} onPress={pressHandlers} />
-            </View>
-
-
-          </View>
-          <Button title="Cancel Request" onPress={handleModal} />
-        </View>
-      </Modal>
+         
         <View  style={styles.statusContainer}>
         <Text style={styles.container}> You Are Online</Text>
         </View>
         </View>
+   
 
       
 
